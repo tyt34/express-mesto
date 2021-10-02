@@ -1,0 +1,3 @@
+/installAllLib.sh
+node_modules/
+dist/
