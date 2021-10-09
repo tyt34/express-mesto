@@ -35,9 +35,7 @@ module.exports.createUser = (req, res) => {
       if (!user) {
         return res.status(400).send({message: 'Некорректные данные'})
       }
-      console.log(' start create')
-      console.log(user)
-      //console.log({ data: user })
+      console.log({ data: user })
       res.send({ data: user })
     })
     .catch(err => res.status(500).send({ message: err.message }))
@@ -50,17 +48,13 @@ module.exports.changeUser = (req, res) => {
   const { name, about } = req.body
   User.updateOne({_id: req.user._id}, {$set: {name: name, about: about} })
     .then(user => {
-      console.log(' start change')
-      //console.log(user.acknowledged)
       if (!user.acknowledged) {
         return res.status(400).send({message: 'Некорректные данные'})
       }
       if (!user) {
         return res.status(400).send({message: 'Некорректные данные'})
       }
-      console.log(' - - > ')
       console.log(user)
-      //console.log({ data: user })
       res.send({ user })
     })
     .catch(err => res.status(500).send({ message: err.message }))
@@ -73,15 +67,14 @@ module.exports.changeAvatar = (req, res) => {
   const { avatar } = req.body
   User.updateOne({_id: req.user._id}, {$set: {avatar: avatar} })
     .then(user => {
-      console.log(' start change')
       if (!user.acknowledged) {
         return res.status(400).send({message: 'Некорректные данные'})
       }
       if (!user) {
         return res.status(400).send({message: 'Некорректные данные'})
       }
-      console.log({ data: user })
-      res.send({ data: user })
+      console.log(user)
+      res.send(user)
     })
     .catch(err => res.status(500).send({ message: err.message }))
 }
