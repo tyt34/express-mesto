@@ -1,8 +1,5 @@
 const Card = require('../models/card');
 
-// теперь, даже если лайк не был удален, и отправить такой запрос, придет солобщение что лайк удален
-// это нормально?
-
 module.exports.delLiked = (req, res) => {
   console.log(' > > delete Like for Card < <');
   const { cardId } = req.params;
@@ -12,46 +9,43 @@ module.exports.delLiked = (req, res) => {
     new: true,
     rawResult: true,
     runValidators: true,
-  }, (err, card) => {
-    console.log(card);
-    if (err) {
-      console.log(' Ошибка ');
-      console.log(card);
-      return res.status(400).send({ message: 'Произошла ошибка' });
-    }
-    if (card.value === null) {
-      console.log(card);
-      return res.status(404).send({ message: 'Нет такой карточки' });
-    }
-    console.log(card);
-    console.log(' Произошло удаление лайка');
-    return res.status(200).send({ message: 'Произошло удаление лайка' });
-  });
+  })
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Указанные данные отсутствуют' });
+      }
+      return res.status(200).send({ message: 'Произошло удаление лайка', data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Невалидный id', err: err.name });
+      }
+      return res.status(500).send({ message: err.message, err: err.name });
+    });
 };
 
 module.exports.sendLiked = (req, res) => {
-  console.log(' > > delete Like for Card < <');
+  console.log(' > > send Like for Card < <');
   const { cardId } = req.params;
   console.log(' user id -> ', req.user._id);
-  console.log(' id for delete Like Id -> ', cardId);
-  Card.findByIdAndUpdate({ _id: cardId }, { $addToSet: { likes: req.user._id } }, {
+  console.log(' id for send Like Id -> ', cardId);
+  Card.findByIdAndUpdate({ _id: cardId }, { $pull: { likes: req.user._id } }, {
     new: true,
     rawResult: true,
-  }, (err, card) => {
-    console.log(card);
-    if (err) {
-      console.log(' Ошибка ');
-      console.log(card);
-      return res.status(400).send({ message: 'Произошла ошибка' });
-    }
-    if (card.value === null) {
-      console.log(card);
-      return res.status(404).send({ message: 'Нет такой карточки' });
-    }
-    console.log(card);
-    console.log(' Произошло постановка лайка');
-    return res.status(200).send({ message: 'Произошло постановка лайка', data: card });
-  });
+    runValidators: true,
+  })
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: 'Указанные данные отсутствуют' });
+      }
+      return res.status(200).send({ message: 'Произошло постановка лайка', data: card });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Невалидный id', err: err.name });
+      }
+      return res.status(500).send({ message: err.message, err: err.name });
+    });
 };
 
 module.exports.delCardId = (req, res) => {
@@ -65,7 +59,12 @@ module.exports.delCardId = (req, res) => {
       console.log(card);
       return res.status(200).send({ message: 'Карточка удалена' });
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Невалидный id', err: err.name });
+      }
+      return res.status(500).send({ message: err.message, err: err.name });
+    });
 };
 
 module.exports.getCards = (req, res) => {

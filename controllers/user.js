@@ -26,9 +26,8 @@ module.exports.getUserId = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Невалидный id ', err: err.name });
-      } else {
-        res.status(500).send({ message: err.message, err: err.name });
       }
+      res.status(500).send({ message: err.message, err: err.name });
     });
 };
 
@@ -52,12 +51,6 @@ module.exports.createUser = (req, res) => {
     });
 };
 
-// теперь, если в теле запроса не name, а например, nam, придет ответ 200
-// это нормально?
-
-// не понимаю, в чем тут смысл findByIdAndUpdate,
-// если мой вариант с этим лучше справлялся и был проще в понимание
-
 module.exports.changeUser = (req, res) => {
   console.log(' > > change User < < ');
   console.log(' user id -> ', req.user._id);
@@ -78,7 +71,7 @@ module.exports.changeUser = (req, res) => {
     .then((user) => {
       console.log(user);
       if (!user) {
-        return res.status(400).send({ message: 'Некорректные данные' });
+        return res.status(404).send({ message: 'Указанные данные отсутствуют' });
       }
       console.log(user);
       return res.status(200).send({ data: user });
@@ -108,11 +101,8 @@ module.exports.changeAvatar = (req, res) => {
     },
   )
     .then((user) => {
-      if (!user.acknowledged) {
-        return res.status(400).send({ message: 'Некорректные данные' });
-      }
       if (!user) {
-        return res.status(400).send({ message: 'Некорректные данные' });
+        return res.status(404).send({ message: 'Указанные данные отсутствуют' });
       }
       console.log(user);
       return res.send(user);
