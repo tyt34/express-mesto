@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/tyt34/express-mesto"
   },
-  "author": "",
+  "author": "Roman Novoto4in",
   "license": "ISC",
   "homepage": "https://github.com/tyt34/express-mesto#readme",
   "devDependencies": {

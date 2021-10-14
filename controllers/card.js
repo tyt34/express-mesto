@@ -7,7 +7,6 @@ module.exports.delLiked = (req, res) => {
   console.log(' id for delete Like Id -> ', cardId);
   Card.findByIdAndUpdate({ _id: cardId }, { $pull: { likes: req.user._id } }, {
     new: true,
-    rawResult: true,
     runValidators: true,
   })
     .then((card) => {
@@ -31,7 +30,6 @@ module.exports.sendLiked = (req, res) => {
   console.log(' id for send Like Id -> ', cardId);
   Card.findByIdAndUpdate({ _id: cardId }, { $pull: { likes: req.user._id } }, {
     new: true,
-    rawResult: true,
     runValidators: true,
   })
     .then((card) => {
@@ -72,7 +70,7 @@ module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
       console.log({ data: cards });
-      return res.status(200).res.send({ data: cards });
+      return res.status(200).send({ data: cards });
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
