@@ -1,4 +1,3 @@
-/* eslint-disable */
 const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-error');
 const CastError = require('../errors/cast-error');
@@ -23,7 +22,7 @@ module.exports.delLiked = (req, res, next) => {
       }
       return res.status(err.statusCode).send({ message: err.message, err: err.name });
     })
-    .catch(err => next(err));
+    .catch((err) => next(err));
 };
 
 module.exports.sendLiked = (req, res, next) => {
@@ -45,7 +44,7 @@ module.exports.sendLiked = (req, res, next) => {
       }
       return res.status(err.statusCode).send({ message: err.message, err: err.name });
     })
-    .catch(err => next(err));
+    .catch((err) => next(err));
 };
 
 module.exports.delCardId = (req, res, next) => {
@@ -67,7 +66,7 @@ module.exports.delCardId = (req, res, next) => {
       }
       return res.status(err.statusCode).send({ message: err.message, err: err.name });
     })
-    .catch(err => next(err));
+    .catch((err) => next(err));
 };
 
 module.exports.getCards = (req, res, next) => {
@@ -77,7 +76,7 @@ module.exports.getCards = (req, res, next) => {
       console.log({ data: cards });
       return res.status(200).send({ data: cards });
     })
-    .catch(err => next(err));
+    .catch((err) => next(err));
 };
 
 module.exports.createCard = (req, res, next) => {
@@ -97,11 +96,9 @@ module.exports.createCard = (req, res, next) => {
         },
       );
     })
-    .catch(err => {
-      //console.log(' - - > '+err);
+    .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Неправильные keys в body запроса' });
-        //console.log(' er 1'); // !!!
       }
       next(err);
     });
