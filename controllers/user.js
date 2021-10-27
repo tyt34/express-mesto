@@ -5,46 +5,38 @@ const NotFoundError = require('../errors/not-found-error');
 const CastError = require('../errors/cast-error');
 const ValidationError = require('../errors/validation-error');
 const RepeatEmail = require('../errors/repeat-email');
+const WrongKeys = require('../errors/wrong-keys');
+const WrongPass = require('../errors/wrong-pass');
 
 module.exports.getUsers = (req, res, next) => {
-  console.log(' > > get Users < <');
   User.find({})
-    .then((users) => {
-      console.log({ data: users });
-      return res.status(200).send({ data: users });
-    })
+    .then((users) => res.status(200).send({ data: users }))
     .catch((err) => next(err));
 };
 
 module.exports.getUserId = (req, res, next) => {
-  console.log(' > > get User use ID < <');
   const { id } = req.params;
-  console.log(' id for get -> ', id);
   User.findById(id)
     .then((user) => {
-      console.log(' search user: \n', user);
       if (!user) {
         throw new NotFoundError();
       }
-      console.log({ data: user });
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new CastError();
+        next(new CastError());
       }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => next(err));
+      if (err.name === 'NotFoundError') {
+        next(new NotFoundError());
+      }
+    });
 };
 
 module.exports.changeUser = (req, res, next) => {
-  console.log(' > > change User < < ');
-  console.log(' user id -> ', req.user._id);
-  console.log(' you send -> ', req.body);
   const { name, about } = req.body;
   if ((name === undefined) && (about === undefined)) {
-    return res.status(400).send({ message: 'Неправильные keys в body запроса' });
+    throw new WrongKeys();
   }
   User.findByIdAndUpdate(
     {
@@ -60,28 +52,25 @@ module.exports.changeUser = (req, res, next) => {
     },
   )
     .then((user) => {
-      console.log(user);
       if (!user) {
         throw new NotFoundError();
       }
-      console.log(user);
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        throw new ValidationError();
+      if (err.name === 'ValidationError') { // проверка на if  в одну строку
+        next(new ValidationError());
       }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => next(err));
+      if (err.name === 'NotFoundError') {
+        next(new NotFoundError());
+      }
+    });
 };
 
 module.exports.changeAvatar = (req, res, next) => {
-  console.log(' > > change Avatar < < ');
-  console.log(' you send -> ', req.body);
   const { avatar } = req.body;
   if (avatar === undefined) {
-    return res.status(400).send({ message: 'Неправильные keys в body запроса' });
+    throw new WrongKeys();
   }
   User.findByIdAndUpdate(
     {
@@ -99,29 +88,22 @@ module.exports.changeAvatar = (req, res, next) => {
       if (!user) {
         return res.status(404).send({ message: 'Указанные данные отсутствуют' });
       }
-      console.log(user);
       return res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        throw new ValidationError(err.message);
-      }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => next(err));
+      if (err.name === 'ValidationError') next(new ValidationError());
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
-  console.log(' > > create User < < ');
-  console.log(' you send -> ', req.body);
-  // const { name, about, avatar, email, password } = req.body;
-  const { email, password } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   if (email === undefined || password === undefined) {
-    return res.status(400).send({ message: 'Неправильные keys в body запроса' });
+    throw new WrongKeys();
   }
   bcrypt.hash(req.body.password, 11)
     .then((hash) => User.create({
-      // email: email,
       email,
       password: hash,
     }))
@@ -129,60 +111,52 @@ module.exports.createUser = (req, res, next) => {
       if (!user) {
         throw new ValidationError();
       }
-      console.log({ data: user });
-      return res.send({ data: user });
+      return res.status(200).send({
+        data: {
+          name, about, avatar, email,
+        },
+      });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        throw new ValidationError();
-      }
+      if (err.name === 'ValidationError') next(new ValidationError(err.message));
       if (err.name === 'MongoServerError' && err.code === 11000) {
-        throw new RepeatEmail();
+        // throw new RepeatEmail(err.message); // как было
+        next(new RepeatEmail()); // как надо
       }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Неправильные keys в body запроса' });
-      }
-      next(err);
     });
 };
 
 module.exports.login = (req, res, next) => {
-  console.log(' > > Login User < < ');
   const { email, password } = req.body;
-  console.log(' Email: ', email, ' Pass: ', password);
   if (email === undefined || password === undefined) {
-    return res.status(400).send({ message: 'Неправильные keys в body запроса' });
+    throw new WrongKeys();
   }
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new WrongPass());
       }
-      if (bcrypt.compare(password, user.password)) {
-        return user;
-      } /* else {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      } */
-      return Promise.reject(new Error('Неправильные почта или пароль'));
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return Promise.reject(new WrongPass());
+          }
+          return user;
+        });
     })
     .then((user) => {
+      if (!user) {
+        return Promise.reject(new WrongPass());
+      }
       const token = jwt.sign({ _id: user._id }, '123', { expiresIn: '7d' });
-      console.log('Bearer ', token);
       res.send({ token });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message }); // это ошибка из return Promise.reject
-    })
-    .catch((err) => next(err));
+    .catch(() => {
+      next(new WrongPass());
+    });
 };
 
 module.exports.getMe = (req, res, next) => {
-  console.log(' > > get information about me  < < ');
-  console.log(' -- - > ', req.user);
-  console.log(' id - > ', req.user._id);
   User.findById(req.user._id)
     .then((user) => {
       console.log(' search user: \n', user);
@@ -193,9 +167,7 @@ module.exports.getMe = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new CastError();
+        next(new CastError());
       }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => next(err));
+    });
 };

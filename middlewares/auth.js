@@ -14,7 +14,6 @@ module.exports = (req, res, next) => {
     } catch (e) {
       next(new NeedAuth());
     }
-
     req.user = payload; // { _id: '6175a4270f38a2b78ee1051c', iat: 1635099808, exp: 1635704608 }
     next();
   }

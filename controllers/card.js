@@ -1,7 +1,10 @@
 const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-error');
 const CastError = require('../errors/cast-error');
-const NotFoundOrNotOrderError = require('../errors/not-found-or-not-order-error');
+// const NotFoundOrNotOrderError = require('../errors/not-found-or-not-order-error');
+// const WrongKeys = require('../errors/wrong-keys');
+const ValidationError = require('../errors/validation-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
 module.exports.delLiked = (req, res, next) => {
   console.log(' > > delete Like for Card < <');
@@ -18,11 +21,12 @@ module.exports.delLiked = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new CastError();
+        next(new CastError());
       }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => next(err));
+      if (err.name === 'NotFoundError') {
+        next(new NotFoundError());
+      }
+    });
 };
 
 module.exports.sendLiked = (req, res, next) => {
@@ -40,33 +44,27 @@ module.exports.sendLiked = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new CastError();
+        next(new CastError());
       }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => next(err));
+      if (err.name === 'NotFoundError') {
+        next(new NotFoundError());
+      }
+    });
 };
 
 module.exports.delCardId = (req, res, next) => {
   console.log(' > > del Card use ID < <');
-  Card.deleteOne({
-    _id: req.params.cardId,
-    owner: req.user._id,
-  })
+  Card.findById({ _id: req.params.cardId })
+    .orFail(() => new NotFoundError())
     .then((card) => {
-      if (card.deletedCount === 0) {
-        throw new NotFoundOrNotOrderError();
+      if (!card.owner.equals(req.user._id)) {
+        next(new ForbiddenError());
+      } else {
+        Card.deleteOne({ card })
+          .then(() => res.status(200).send({ message: 'Карточка удалена' }));
       }
-      console.log(card);
-      return res.status(200).send({ message: 'Карточка удалена' });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        throw new CastError();
-      }
-      return res.status(err.statusCode).send({ message: err.message, err: err.name });
-    })
-    .catch((err) => next(err));
+    .catch(next);
 };
 
 module.exports.getCards = (req, res, next) => {
@@ -83,12 +81,12 @@ module.exports.createCard = (req, res, next) => {
   console.log(' > > create Card < < ');
   console.log(' user id -> ', req.user._id);
   console.log(' you send -> ', req.body);
-  const { name, link, schema } = req.body;
+  const { name, link } = req.body;
   Card.create({
-    name, link, owner: req.user._id, schema,
+    name, link, owner: req.user._id,
   })
     .then((card) => {
-      console.log(card);
+      console.log('card', card);
       return res.send(
         {
           data: card,
@@ -98,8 +96,7 @@ module.exports.createCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Неправильные keys в body запроса' });
+        next(new ValidationError(err.message));
       }
-      next(err);
     });
 };

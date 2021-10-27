@@ -1,6 +1,6 @@
-/* eslint-disable */
 const mongoose = require('mongoose');
-const ValidationError = require('../errors/validation-error');
+const validator = require('validator');
+// const ValidationError = require('../errors/validation-error');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -21,20 +21,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator: function(validationAvatar) {
-        //console.log(' what -> ',/\d{3}-\d{3}-\d{4}/i.test(validationAvatar));
-        return /^http[s]{0,1}[:][\\/]{2}[._~:\\/?#@!$&\[\]'()*+,;=a-z]/i.test(validationAvatar);
-      },
-      message: props => `${props.value} это не соответствует ссылки на картинку!`
-      //throw new ValidationError();
-      //return res.status(400).send({ message: 'Неправильные keys в body запроса' });
-    }
+      validator: (validationAvatar) => validator.isURL(validationAvatar),
+      message: (props) => `${props.value} это не соответствует ссылки на картинку пользователя!`,
+    },
   //  required: true,
   },
   email: {
     type: String,
     required: true,
     unique: true,
+    validate: {
+      validator: (validationEmail) => validator.isEmail(validationEmail),
+      message: (props) => `${props.value} это не соответствует адресу почты пользователя!`,
+    },
   },
   password: {
     type: String,
@@ -44,5 +43,3 @@ const userSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('user', userSchema);
-// https://www.google.ru/
-// https://google.ru/
