@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const NotFoundAddress = require('./errors/not-found-address');
 
@@ -24,6 +25,8 @@ app.use('/', require('./routes/card'));
 app.use(() => {
   throw new NotFoundAddress();
 });
+
+app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;

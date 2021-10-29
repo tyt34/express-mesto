@@ -11,7 +11,7 @@ const WrongPass = require('../errors/wrong-pass');
 module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(200).send({ data: users }))
-    .catch((err) => next(err));
+    .catch(next);
 };
 
 module.exports.getUserId = (req, res, next) => {
@@ -24,12 +24,9 @@ module.exports.getUserId = (req, res, next) => {
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new CastError());
-      }
-      if (err.name === 'NotFoundError') {
-        next(new NotFoundError());
-      }
+      if (err.name === 'CastError') next(new CastError());
+      if (err.name === 'NotFoundError') next(new NotFoundError());
+      next(err);
     });
 };
 
@@ -58,12 +55,9 @@ module.exports.changeUser = (req, res, next) => {
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') { // проверка на if  в одну строку
-        next(new ValidationError());
-      }
-      if (err.name === 'NotFoundError') {
-        next(new NotFoundError());
-      }
+      if (err.name === 'ValidationError') next(new ValidationError());
+      if (err.name === 'NotFoundError') next(new NotFoundError());
+      next(err);
     });
 };
 
@@ -86,12 +80,14 @@ module.exports.changeAvatar = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'Указанные данные отсутствуют' });
+        next(new NotFoundError());
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') next(new ValidationError());
+      if (err.name === 'NotFoundError') next(new NotFoundError());
+      next(err);
     });
 };
 
@@ -123,6 +119,7 @@ module.exports.createUser = (req, res, next) => {
         // throw new RepeatEmail(err.message); // как было
         next(new RepeatEmail()); // как надо
       }
+      next(err);
     });
 };
 
@@ -146,7 +143,8 @@ module.exports.login = (req, res, next) => {
     })
     .then((user) => {
       if (!user) {
-        return Promise.reject(new WrongPass());
+        // return Promise.reject(new WrongPass());
+        Promise.reject(new WrongPass());
       }
       const token = jwt.sign({ _id: user._id }, '123', { expiresIn: '7d' });
       res.send({ token });
@@ -166,8 +164,7 @@ module.exports.getMe = (req, res, next) => {
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new CastError());
-      }
+      if (err.name === 'CastError') next(new CastError());
+      next(err);
     });
 };

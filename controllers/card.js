@@ -20,12 +20,9 @@ module.exports.delLiked = (req, res, next) => {
       return res.status(200).send({ message: 'Произошло удаление лайка', data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new CastError());
-      }
-      if (err.name === 'NotFoundError') {
-        next(new NotFoundError());
-      }
+      if (err.name === 'CastError') next(new CastError());
+      if (err.name === 'NotFoundError') next(new NotFoundError());
+      next(err);
     });
 };
 
@@ -43,12 +40,9 @@ module.exports.sendLiked = (req, res, next) => {
       return res.status(200).send({ message: 'Произошло постановка лайка', data: card });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new CastError());
-      }
-      if (err.name === 'NotFoundError') {
-        next(new NotFoundError());
-      }
+      if (err.name === 'CastError') next(new CastError());
+      if (err.name === 'NotFoundError') next(new NotFoundError());
+      next(err);
     });
 };
 
@@ -74,7 +68,7 @@ module.exports.getCards = (req, res, next) => {
       console.log({ data: cards });
       return res.status(200).send({ data: cards });
     })
-    .catch((err) => next(err));
+    .catch(next);
 };
 
 module.exports.createCard = (req, res, next) => {
@@ -95,8 +89,7 @@ module.exports.createCard = (req, res, next) => {
       );
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new ValidationError(err.message));
-      }
+      if (err.name === 'ValidationError') next(new ValidationError(err.message));
+      next(err);
     });
 };
