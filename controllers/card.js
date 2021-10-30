@@ -65,7 +65,7 @@ module.exports.getCards = (req, res, next) => {
   console.log(' > > get Cards < <');
   Card.find({})
     .then((cards) => {
-      console.log({ data: cards });
+      console.log(' norm ');
       return res.status(200).send({ data: cards });
     })
     .catch(next);

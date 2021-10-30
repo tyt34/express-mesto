@@ -11,6 +11,7 @@ module.exports = (req, res, next) => {
     let payload;
     try {
       payload = jwt.verify(token, '123');
+      console.log(payload);
     } catch (e) {
       next(new NeedAuth());
     }
