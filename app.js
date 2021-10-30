@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const NotFoundAddress = require('./errors/not-found-address');
 
 const { PORT = 3000 } = process.env;
@@ -15,6 +16,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
 
+app.use(requestLogger);
+
 app.use('/', require('./routes/app'));
 
 app.use(auth);
@@ -25,6 +28,8 @@ app.use('/', require('./routes/card'));
 app.use(() => {
   throw new NotFoundAddress();
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 
