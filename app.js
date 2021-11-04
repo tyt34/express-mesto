@@ -1,4 +1,3 @@
-/*eslint-disable */
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -18,19 +17,10 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use(requestLogger);
-/*
-app.use(() => {
-  console.log(' -> > > ');
-  // console.log(req);
-  throw new NotFoundAddress(); // мы поняли что ошибка рождается тут
-});
-*/
+
 app.use('/', require('./routes/app'));
 
 app.use(auth);
-
-
-
 
 app.use('/', require('./routes/user'));
 app.use('/', require('./routes/card'));
