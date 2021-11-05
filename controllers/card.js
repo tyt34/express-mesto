@@ -73,6 +73,7 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.createCard = (req, res, next) => {
   console.log(' > > create Card < < ');
+  console.log(' user id -> ', req.user);
   console.log(' user id -> ', req.user._id);
   console.log(' you send -> ', req.body);
   const { name, link } = req.body;
