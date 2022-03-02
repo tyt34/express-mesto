@@ -29,7 +29,7 @@ module.exports.delLiked = (req, res, next) => {
 module.exports.sendLiked = (req, res, next) => {
   console.log(' > > send Like for Card < <');
   const { cardId } = req.params;
-  Card.findByIdAndUpdate({ _id: cardId }, { $pull: { likes: req.user._id } }, {
+  Card.findByIdAndUpdate({ _id: cardId }, { $push: { likes: req.user._id } }, {
     new: true,
     runValidators: true,
   })
