@@ -3,6 +3,7 @@
 ![](https://shields.io/badge/-JavaScript-yellow)
 ![](https://shields.io/badge/-Node.js-3E863D)
 ![](https://shields.io/badge/-MongoDB-00E661)
+![](https://shields.io/badge/-Express.JS-384752)
 
 ## Функционал приложения 
 
